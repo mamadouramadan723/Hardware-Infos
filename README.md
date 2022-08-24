@@ -1,6 +1,6 @@
 # Souces :
-[Android Developers](https://developer.android.com/about/versions/10/privacy/changes)
-[geeksforgeeks](https://www.geeksforgeeks.org/how-to-obtain-the-connection-information-programmatically-in-android/)
+  - [Android Developers](https://developer.android.com/about/versions/10/privacy/changes)
+  - [geeksforgeeks](https://www.geeksforgeeks.org/how-to-obtain-the-connection-information-programmatically-in-android/)
 
 ## Restriction on IMEI and serial Number
 
