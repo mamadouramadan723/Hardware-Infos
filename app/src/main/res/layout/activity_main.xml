@@ -10,20 +10,31 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:layout_gravity="center"
+        android:paddingTop="10dp"
         android:orientation="vertical">
-        <TextView
-            android:id="@+id/textView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="info"
-            android:textSize="24sp"
-            android:textStyle="bold|italic" />
 
         <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/button"
+            android:id="@+id/checkConnectionBtn"
+            android:text="@string/check_connection"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/showConnectionInfosTv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="24sp"
+            android:textStyle="bold|italic" />
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/showSystemInfosBtn"
+            android:text="@string/check_system_infos"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/showSystemInfosTv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="24sp"
+            android:textStyle="bold|italic" />
 
 
 
