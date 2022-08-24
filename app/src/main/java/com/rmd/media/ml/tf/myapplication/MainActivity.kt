@@ -6,8 +6,8 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.os.Build.VERSION.SDK_INT
-import android.os.Build.VERSION_CODES
+import android.os.Build.*
+import android.os.Build.VERSION.*
 import android.os.Bundle
 import android.provider.Settings
 import android.telephony.TelephonyManager
@@ -20,6 +20,7 @@ import com.rmd.media.ml.tf.myapplication.databinding.ActivityMainBinding
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private var systemInfos: String = ""
 
 
     @SuppressLint("HardwareIds")
@@ -38,6 +39,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
         binding.showSystemInfosBtn.setOnClickListener {
+
+            //get ANDROID_ID
             val telephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as
                     TelephonyManager
             if (ActivityCompat.checkSelfPermission(
@@ -52,16 +55,31 @@ class MainActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
             if (SDK_INT >= VERSION_CODES.O) {
-                binding.showSystemInfosTv.text = Settings.Secure.getString(
+                systemInfos = Settings.Secure.getString(
                     this.contentResolver,
                     Settings.Secure.ANDROID_ID
                 ).toString()
             } else {
                 binding.showConnectionInfosTv.text = telephonyManager.deviceId
             }
-
+            //get other infos
+            getOtherInfos(this)
 
         }
+    }
+
+    private fun getOtherInfos(activity: MainActivity) {
+        if (SDK_INT >= VERSION_CODES.M) {
+            systemInfos += "\nModel : $MODEL\nHardware : $HARDWARE\nOS : $BASE_OS" +
+                    "\nPatch Security : $SECURITY_PATCH\nBuild : $DEVICE\nBrand: $BRAND" +
+                    "\nCPU : $CPU_ABI\nDisplay : $DISPLAY\nFingerprint : $FINGERPRINT"+
+                    "\nHost : $HOST\nID : $ID\nMANUFACTURER : $MANUFACTURER\nPRODUCT : $PRODUCT"+
+                    "\nTIME : $TIME"
+        } else {
+            TODO("VERSION.SDK_INT < M")
+        }
+
+        binding.showSystemInfosTv.text = systemInfos
     }
 
 
