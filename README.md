@@ -19,3 +19,6 @@ ANDROID_ID is unique to each combination of app-signing key, user, and device. V
 Apps targeting Android 10 or higher cannot enable or disable Wi-Fi. The WifiManager.setWifiEnabled() method always returns false.
 
 If you need to prompt users to enable and disable Wi-Fi, use a settings panel.
+
+## Restriction on Phone Number
+ - [Phone Number](https://developer.android.com/about/versions/11/privacy/permissions#phone-numbers)
