@@ -6,11 +6,10 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.os.Build.*
-import android.os.Build.VERSION.*
+import android.os.Build
+import android.os.Build.VERSION.SDK_INT
 import android.os.Bundle
 import android.provider.Settings
-import android.telephony.TelephonyManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -30,19 +29,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         binding.checkConnectionBtn.setOnClickListener {
-            if (checkForInternet(this)) {
-                Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show()
-                showConnectionInfos(this)
-            } else {
-                Toast.makeText(this, "Disconnected", Toast.LENGTH_SHORT).show()
-                binding.showConnectionInfosTv.text = ""
-            }
-        }
-        binding.showSystemInfosBtn.setOnClickListener {
 
-            //get ANDROID_ID
-            val telephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as
-                    TelephonyManager
+            //
             if (ActivityCompat.checkSelfPermission(
                     this,
                     Manifest.permission.READ_PHONE_STATE
@@ -54,31 +42,48 @@ class MainActivity : AppCompatActivity() {
                 )
                 return@setOnClickListener
             }
-            if (SDK_INT >= VERSION_CODES.O) {
-                systemInfos = Settings.Secure.getString(
-                    this.contentResolver,
-                    Settings.Secure.ANDROID_ID
-                ).toString()
-            } else {
-                binding.showConnectionInfosTv.text = telephonyManager.deviceId
-            }
-            //get other infos
-            getOtherInfos(this)
 
+            if (checkForInternet(this)) {
+                Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show()
+                showConnectionInfos(this)
+            } else {
+                Toast.makeText(this, "Disconnected", Toast.LENGTH_SHORT).show()
+                binding.showConnectionInfosTv.text = ""
+            }
+        }
+        binding.showSystemInfosBtn.setOnClickListener {
+            getHardwareInfos()
         }
     }
 
-    private fun getOtherInfos(activity: MainActivity) {
-        if (SDK_INT >= VERSION_CODES.M) {
-            systemInfos += "\nModel : $MODEL\nHardware : $HARDWARE\nOS : $BASE_OS" +
-                    "\nPatch Security : $SECURITY_PATCH\nBuild : $DEVICE\nBrand: $BRAND" +
-                    "\nCPU : $CPU_ABI\nDisplay : $DISPLAY\nFingerprint : $FINGERPRINT"+
-                    "\nHost : $HOST\nID : $ID\nMANUFACTURER : $MANUFACTURER\nPRODUCT : $PRODUCT"+
-                    "\nTIME : $TIME"
+    @SuppressLint("HardwareIds")
+    private fun getHardwareInfos() {
+
+        if (SDK_INT >= Build.VERSION_CODES.M) {
+            systemInfos = "Brand: ${Build.BRAND} \n" +
+                    "DeviceID: ${
+                        Settings.Secure.getString(
+                            contentResolver,
+                            Settings.Secure.ANDROID_ID
+                        )
+                    } \n" +
+                    "Model: ${Build.MODEL} \n" +
+                    "ID: ${Build.ID} \n" +
+                    "SDK: $SDK_INT \n" +
+                    "Manufacture: ${Build.MANUFACTURER} \n" +
+                    "Brand: ${Build.BRAND} \n" +
+                    "User: ${Build.USER} \n" +
+                    "Type: ${Build.TYPE} \n" +
+                    "Base: ${Build.VERSION_CODES.BASE} \n" +
+                    "Incremental: ${Build.VERSION.INCREMENTAL} \n" +
+                    "Board: ${Build.BOARD} \n" +
+                    "Host: ${Build.HOST} \n" +
+                    "FingerPrint: ${Build.FINGERPRINT} \n" +
+                    "Version Code: ${Build.VERSION.RELEASE}"
+
         } else {
             TODO("VERSION.SDK_INT < M")
         }
-
         binding.showSystemInfosTv.text = systemInfos
     }
 
@@ -91,7 +96,7 @@ class MainActivity : AppCompatActivity() {
 
         // if the android version is equal to M or greater we need to use the NetworkCapabilities
         // to check what type of network has the internet connection
-        if (SDK_INT >= VERSION_CODES.M) {
+        if (SDK_INT >= Build.VERSION_CODES.M) {
 
             // Returns a Network object corresponding to the currently active default data network.
             val network = connectivityManager.activeNetwork
@@ -105,7 +110,6 @@ class MainActivity : AppCompatActivity() {
                 } else if (activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
                     binding.showConnectionInfosTv.text = "TRANSPORT_CELLULAR"
                 }
-
             }
         } else {
             // if the android version is below M
@@ -128,7 +132,7 @@ class MainActivity : AppCompatActivity() {
 
         // if the android version is equal to M or greater we need to use the NetworkCapabilities
         // to check what type of network has the internet connection
-        if (SDK_INT >= VERSION_CODES.M) {
+        if (SDK_INT >= Build.VERSION_CODES.M) {
 
             // Returns a Network object corresponding to the currently active default data network.
             val network = connectivityManager.activeNetwork ?: return false
