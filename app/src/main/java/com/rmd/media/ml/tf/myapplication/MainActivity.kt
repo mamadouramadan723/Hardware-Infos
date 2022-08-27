@@ -1,18 +1,21 @@
 package com.rmd.media.ml.tf.myapplication
 
-import android.Manifest
 import android.annotation.SuppressLint
+import android.app.ActivityManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.net.wifi.WifiManager
+import android.os.BatteryManager
 import android.os.Build
 import android.os.Build.VERSION.SDK_INT
 import android.os.Bundle
 import android.provider.Settings
+import android.telephony.TelephonyManager
+import android.text.format.Formatter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import com.rmd.media.ml.tf.myapplication.databinding.ActivityMainBinding
 
 
@@ -29,27 +32,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         binding.checkConnectionBtn.setOnClickListener {
-
-            //
-            if (ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.READ_PHONE_STATE
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.READ_PHONE_STATE), REQUEST_CODE
-                )
-                return@setOnClickListener
-            }
-
-            if (checkForInternet(this)) {
-                Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show()
-                showConnectionInfos(this)
-            } else {
-                Toast.makeText(this, "Disconnected", Toast.LENGTH_SHORT).show()
-                binding.showConnectionInfosTv.text = ""
-            }
+            checkConnectionAndShowInfosIfConnected(this)
         }
         binding.showSystemInfosBtn.setOnClickListener {
             getHardwareInfos()
@@ -59,13 +42,22 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("HardwareIds")
     private fun getHardwareInfos() {
 
+        val memoryManager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
+        val batteryManager = getSystemService(BATTERY_SERVICE) as BatteryManager
+
+        val memInfo = ActivityManager.MemoryInfo()
+        memoryManager.getMemoryInfo(memInfo)
+
+        // Fetching the available and total memory and converting into Giga Bytes
+        val availMemory = memInfo.availMem.toDouble() / (1024 * 1024 * 1024)
+        val totalMemory = memInfo.totalMem.toDouble() / (1024 * 1024 * 1024)
+
+        val batteryLevel = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+
         if (SDK_INT >= Build.VERSION_CODES.M) {
             systemInfos = "Brand: ${Build.BRAND} \n" +
                     "DeviceID: ${
-                        Settings.Secure.getString(
-                            contentResolver,
-                            Settings.Secure.ANDROID_ID
-                        )
+                        Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
                     } \n" +
                     "Model: ${Build.MODEL} \n" +
                     "ID: ${Build.ID} \n" +
@@ -79,7 +71,10 @@ class MainActivity : AppCompatActivity() {
                     "Board: ${Build.BOARD} \n" +
                     "Host: ${Build.HOST} \n" +
                     "FingerPrint: ${Build.FINGERPRINT} \n" +
-                    "Version Code: ${Build.VERSION.RELEASE}"
+                    "Version Code: ${Build.VERSION.RELEASE} \n" +
+                    "Total Memory : $totalMemory GB\n" +
+                    "Available Memory : $availMemory GB\n" +
+                    "Battery Level : $batteryLevel %"
 
         } else {
             TODO("VERSION.SDK_INT < M")
@@ -89,81 +84,71 @@ class MainActivity : AppCompatActivity() {
 
 
     @SuppressLint("SetTextI18n")
-    private fun showConnectionInfos(context: Context) {
-        // register activity with the connectivity manager service
+    private fun checkConnectionAndShowInfosIfConnected(context: Context) {
+
         val connectivityManager =
             context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
-        // if the android version is equal to M or greater we need to use the NetworkCapabilities
-        // to check what type of network has the internet connection
         if (SDK_INT >= Build.VERSION_CODES.M) {
 
-            // Returns a Network object corresponding to the currently active default data network.
             val network = connectivityManager.activeNetwork
-
-            // Representation of the capabilities of an active network.
             val activeNetwork = connectivityManager.getNetworkCapabilities(network)
+
             if (activeNetwork != null) {
+                Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show()
+                //val s : String = activeNetwork.
                 if (activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
-                    binding.showConnectionInfosTv.text = "TRANSPORT_WIFI"
+
+                    // Invoking the Wifi Manager
+                    val wifiManager =
+                        applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+                    // Method to get the current connection info
+                    val wInfo = wifiManager.connectionInfo
+
+                    // Extracting the information from the received connection info
+                    val ipAddress = Formatter.formatIpAddress(wInfo.ipAddress)
+                    val linkSpeed = wInfo.linkSpeed
+                    val networkID = wInfo.networkId
+                    val ssid = wInfo.ssid
+                    val hssid = wInfo.hiddenSSID
+
+                    val infos = "Type :\tWIFI\n" +
+                            "IP Address:\t$ipAddress\n" +
+                            "Link Speed:\t$linkSpeed\n" +
+                            "Network ID:\t$networkID\n" +
+                            "SSID:\t$ssid\n" +
+                            "Hidden SSID:\t$hssid\n"
+
+                    binding.showConnectionInfosTv.text = infos
 
                 } else if (activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
-                    binding.showConnectionInfosTv.text = "TRANSPORT_CELLULAR"
+
+                    val type = when (connectivityManager.activeNetworkInfo?.subtype) {
+                        TelephonyManager.NETWORK_TYPE_GPRS, TelephonyManager.NETWORK_TYPE_EDGE, TelephonyManager.NETWORK_TYPE_CDMA, TelephonyManager.NETWORK_TYPE_1xRTT, TelephonyManager.NETWORK_TYPE_IDEN, TelephonyManager.NETWORK_TYPE_GSM -> "2G"
+                        TelephonyManager.NETWORK_TYPE_UMTS, TelephonyManager.NETWORK_TYPE_EVDO_0, TelephonyManager.NETWORK_TYPE_EVDO_A, TelephonyManager.NETWORK_TYPE_HSDPA, TelephonyManager.NETWORK_TYPE_HSUPA, TelephonyManager.NETWORK_TYPE_HSPA, TelephonyManager.NETWORK_TYPE_EVDO_B, TelephonyManager.NETWORK_TYPE_EHRPD, TelephonyManager.NETWORK_TYPE_HSPAP, TelephonyManager.NETWORK_TYPE_TD_SCDMA -> "3G"
+                        TelephonyManager.NETWORK_TYPE_LTE, TelephonyManager.NETWORK_TYPE_IWLAN, 19 -> "4G"
+                        TelephonyManager.NETWORK_TYPE_NR -> "5G"
+                        else -> "?"
+                    }
+                    val infos = "\tCellular : $type\n"
+                    binding.showConnectionInfosTv.text = infos
+
                 }
+            } else {
+                Toast.makeText(this, "Disconnected", Toast.LENGTH_SHORT).show()
+                binding.showConnectionInfosTv.text = ""
             }
         } else {
             // if the android version is below M
-
-            val networkInfo = connectivityManager.activeNetworkInfo
-            if (networkInfo != null) {
-
-                if (networkInfo.isConnected) {
-                    TODO("Create an emulator with SDK Version < M ")
-                }
-            }
-        }
-    }
-
-    private fun checkForInternet(context: Context): Boolean {
-
-        // register activity with the connectivity manager service
-        val connectivityManager =
-            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-
-        // if the android version is equal to M or greater we need to use the NetworkCapabilities
-        // to check what type of network has the internet connection
-        if (SDK_INT >= Build.VERSION_CODES.M) {
-
-            // Returns a Network object corresponding to the currently active default data network.
-            val network = connectivityManager.activeNetwork ?: return false
-
-            // Representation of the capabilities of an active network.
-            val activeNetwork = connectivityManager.getNetworkCapabilities(network) ?: return false
-
-            return when {
-                // Indicates this network uses a Wi-Fi transport, or WiFi has network connectivity
-                activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
-
-                // Indicates this network uses a Cellular transport. or
-                // Cellular has network connectivity
-                activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
-
-                // else return false
-                else -> false
-            }
-        } else {
-            // if the android version is below M
-            @Suppress("DEPRECATION")
-            val networkInfo =
-                connectivityManager.activeNetworkInfo ?: return false
-            @Suppress("DEPRECATION")
-            return networkInfo.isConnected
+            TODO("Create an emulator with SDK Version < M ")
         }
     }
 
     companion object {
-        private const val REQUEST_CODE = 101
+        private const val REQUEST_CODE = 100
+        private const val RC_PHONE_NUMBER = 101
     }
+
 
     override fun onRequestPermissionsResult(
         requestCode: Int, permissions: Array<String?>,
