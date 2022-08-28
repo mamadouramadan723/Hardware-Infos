@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">My Application</string>
+    <string name="app_name">Don\'t Trust Your APP</string>
     <string name="check_connection">Check Connection</string>
     <string name="check_system_infos">Check System Infos</string>
 </resources>

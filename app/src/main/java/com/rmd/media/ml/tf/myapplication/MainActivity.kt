@@ -11,7 +11,6 @@ import android.os.BatteryManager
 import android.os.Build
 import android.os.Build.VERSION.SDK_INT
 import android.os.Bundle
-import android.provider.Settings
 import android.telephony.TelephonyManager
 import android.text.format.Formatter
 import android.util.Log
@@ -124,12 +123,12 @@ class MainActivity : AppCompatActivity() {
 
         if (SDK_INT >= Build.VERSION_CODES.M) {
             systemInfos = "\tBrand: ${Build.BRAND} \n" +
-                    "\tDeviceID: ${
+                    /*"\tDeviceID: ${
                         Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
                     } \n" +
                     "\tModel: ${Build.MODEL} \n" +
                     "\tID: ${Build.ID} \n" +
-                    "\tSDK: $SDK_INT \n" +
+                    "\tSDK: $SDK_INT \n" +*/
                     "\tManufacture: ${Build.MANUFACTURER} \n" +
                     "\tBrand: ${Build.BRAND} \n" +
                     "\tUser: ${Build.USER} \n" +
@@ -140,7 +139,6 @@ class MainActivity : AppCompatActivity() {
                     "\tHost: ${Build.HOST} \n" +
                     "\tFingerPrint: ${Build.FINGERPRINT} \n" +
                     "\tVersion Code: ${Build.VERSION.RELEASE} \n" +
-                    "\tTotal Memory : $totalMemory GB\n" +
                     "\tAvailable Memory : $availMemory GB\n" +
                     "\tBattery Level : $batteryLevel %"
 
